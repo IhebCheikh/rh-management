@@ -5,6 +5,7 @@ import { faUser, faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 import { login as loginUser } from '../api/authApi';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -16,15 +17,27 @@ const Login = () => {
         e.preventDefault();
         try {
             const response = await loginUser(email, password);
-            login(response.data);
+            console.log(response); // Check the structure of the response
+            console.log(response.token); // Check the structure of the response
+            const token = response.token;
 
-            if (response.data.role === 'RH') {
+            if (!token) {
+                throw new Error("Token is missing in the response");
+            }
+
+            // Store token and decode it to get user details
+            login(token);
+            const decodedToken = jwtDecode(token);
+            console.log(decodedToken); // Check the structure of the response
+            // Make an additional call to get user details
+            if (decodedToken.role === 'RH') {
                 navigate('/hr-dashboard');
             } else {
                 navigate('/employee-dashboard');
             }
         } catch (error) {
-            console.error('Login failed', error);
+            console.error('Login failed:', error);
+            alert('Login failed: Please check your credentials or try again later');
         }
     };
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-    baseURL: 'http://localhost:3000', // URL de base du backend
+    baseURL: 'http://localhost:3001', // URL de base du backend
 });
 
 instance.interceptors.request.use((config) => {
