@@ -7,6 +7,8 @@ import EmployeeDashboard from './components/EmployeeDashboard';
 import HRDashboard from './components/HRDashboard';
 import Navbar from './components/Navbar';
 import { AuthProvider } from './context/AuthContext';
+import EmployeeLeave from "./components/EmployeeLeave";
+import HRLeave from "./components/HRLeave";
 
 const App = () => {
     return (
@@ -18,6 +20,8 @@ const App = () => {
                     <Route path="/register" element={<Register />} />
                     <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
                     <Route path="/hr-dashboard" element={<HRDashboard />} />
+                    <Route path="/employee-leave" element={<EmployeeLeave />} />
+                    <Route path="/hr-leave" element={<HRLeave />} />
                     <Route path="/" element={<Navigate to="/login" />} />
                 </Routes>
             </AuthProvider>

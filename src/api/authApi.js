@@ -10,11 +10,21 @@ export const login = async (email, password) => {
     return axios.post(`${API_URL}/login`, { email, password });
 };
 */
-export const login = async (email, password) => {
+export const login0 = async (email, password) => {
     try {
         const response = await axios.post(`${API_URL}/login`, { email, password });
         console.log(response.data)
         return response.data; // Cela devrait retourner un objet avec le token JWT et l'info utilisateur
+    } catch (error) {
+        throw new Error('Login failed, please check your credentials');
+    }
+};
+export const login = async (email, password) => {
+    try {
+        const response = await axios.post(`${API_URL}/login`, { email, password });
+        const { token } = response.data;
+        localStorage.setItem('token', token); // Sauvegarde le token pour les futures requêtes
+        return response.data;
     } catch (error) {
         throw new Error('Login failed, please check your credentials');
     }

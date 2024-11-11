@@ -27,7 +27,11 @@ const Login = () => {
 
             // Store token and decode it to get user details
             login(token);
+
             const decodedToken = jwtDecode(token);
+            const userId = decodedToken.id; // Assurez-vous que `id` est bien le champ contenant l'ID
+
+            localStorage.setItem('userId', userId); // Stocker l'ID dans le localStorage
             console.log(decodedToken); // Check the structure of the response
             // Make an additional call to get user details
             if (decodedToken.role === 'RH') {
