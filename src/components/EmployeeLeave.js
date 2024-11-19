@@ -10,6 +10,7 @@ const EmployeeLeave = () => {
     // Récupérer l'ID de l'utilisateur au chargement du composant
     useEffect(() => {
         const id = localStorage.getItem('userId');
+        console.log("id",id)
         if (id) {
             setEmployeeId(id);
         }

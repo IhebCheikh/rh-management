@@ -1,11 +1,22 @@
 // src/components/Navbar.js
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
+    const [role, setRole] = useState(null);
+    const [name, setName] = useState('User');
     const navigate = useNavigate();
+
+    // Retrieve user role and name from the user context
+    useEffect(() => {
+        console.log("user",user)
+        if (user) {
+            setRole(user.role);
+            setName(user.name || 'User'); // Set default name if user.name is undefined
+        }
+    }, [user]);
 
     const handleLogout = () => {
         logout();
@@ -13,12 +24,11 @@ const Navbar = () => {
     };
 
     const handleFeedClick = () => {
-        if (user) {
-            if (user.role === 'employee') {
-                navigate('/employee-dashboard'); // Redirige vers le tableau de bord des employés
-            } else if (user.role === 'hr') {
-                navigate('/hr-dashboard'); // Redirige vers le tableau de bord des responsables RH
-            }
+        console.log("role",role)
+        if (role === 'employee') {
+            navigate('/employee-dashboard'); // Redirect to the employee dashboard
+        } else if (role === 'RH') {
+            navigate('/hr-dashboard'); // Redirect to the HR dashboard
         }
     };
 
@@ -26,12 +36,17 @@ const Navbar = () => {
         <nav style={styles.navbar}>
             <div style={styles.navLinks}>
                 <button onClick={handleFeedClick} style={styles.navItem}>Feed</button>
-                {user && <Link to="/profile" style={styles.navItem}>Profil</Link>}
+                {role === 'RH' && (
+                    <Link to="/hr-leave" style={styles.navItem}>Leave Requests</Link>
+                )}
+                {role === 'employee' && (
+                    <Link to="/employee-leave" style={styles.navItem}>My Leave Requests</Link>
+                )}
             </div>
             <div style={styles.authSection}>
                 {user ? (
                     <>
-                        <span style={styles.welcomeMessage}>Welcome, {user.email}</span>
+                        <span style={styles.welcomeMessage}>Welcome, {name}</span>
                         <button onClick={handleLogout} style={styles.logoutButton}>LogOut</button>
                     </>
                 ) : (

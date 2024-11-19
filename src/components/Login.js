@@ -17,6 +17,7 @@ const Login = () => {
         e.preventDefault();
         try {
             const response = await loginUser(email, password);
+
             console.log(response); // Check the structure of the response
             console.log(response.token); // Check the structure of the response
             const token = response.token;
@@ -25,16 +26,19 @@ const Login = () => {
                 throw new Error("Token is missing in the response");
             }
 
-            // Store token and decode it to get user details
-            login(token);
-
             const decodedToken = jwtDecode(token);
-            const userId = decodedToken.id; // Assurez-vous que `id` est bien le champ contenant l'ID
-
-            localStorage.setItem('userId', userId); // Stocker l'ID dans le localStorage
+            const userDetails = {
+                id: decodedToken.id,
+                name: decodedToken.name,
+                role: decodedToken.role,
+            };
             console.log(decodedToken); // Check the structure of the response
-            // Make an additional call to get user details
-            if (decodedToken.role === 'RH') {
+            localStorage.setItem('userId', userDetails.id); // Stocker l'ID dans le localStorage
+
+            // Store token and user details in AuthContext
+            login(token, userDetails);
+
+            if (userDetails.role === 'RH') {
                 navigate('/hr-dashboard');
             } else {
                 navigate('/employee-dashboard');
