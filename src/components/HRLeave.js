@@ -1,17 +1,18 @@
-// src/components/HRLeaveDashboard.js
 import React, { useState, useEffect } from 'react';
-import { getLeaveRequests, approveLeaveRequest, rejectLeaveRequest } from '../api/leaveApi';
+import { getFilteredLeaveRequests, approveLeaveRequest, rejectLeaveRequest } from '../api/leaveApi'; // Nouvelle API pour filtrer
 
 const HRLeave = () => {
     const [leaveRequests, setLeaveRequests] = useState([]);
+    const [typeFilter, setTypeFilter] = useState(''); // État pour le filtre type
+    const [statusFilter, setStatusFilter] = useState(''); // État pour le filtre statut
 
     useEffect(() => {
         loadLeaveRequests();
-    }, []);
+    }, [typeFilter, statusFilter]); // Recharger lorsque les filtres changent
 
     const loadLeaveRequests = async () => {
         try {
-            const data = await getLeaveRequests();
+            const data = await getFilteredLeaveRequests(typeFilter, statusFilter); // Utilisation de l'API filtrée
             setLeaveRequests(data);
         } catch (error) {
             console.error('Erreur lors du chargement des demandes de congé:', error);
@@ -31,6 +32,29 @@ const HRLeave = () => {
     return (
         <div className="p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-lg font-medium mb-4">Approbation des Demandes de Congé</h2>
+
+            {/* Filtres */}
+            <div className="flex mb-4">
+                <input
+                    type="text"
+                    placeholder="Filtrer par type"
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                    className="border p-2 mr-2 rounded"
+                />
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="border p-2 rounded"
+                >
+                    <option value="">Tous les statuts</option>
+                    <option value="pending">En attente</option>
+                    <option value="approved">Approuvé</option>
+                    <option value="rejected">Rejeté</option>
+                </select>
+            </div>
+
+            {/* Liste des demandes */}
             {leaveRequests.map((request) => (
                 <div key={request._id} className="mb-4 border p-4 rounded">
                     <p>Type: {request.type}</p>

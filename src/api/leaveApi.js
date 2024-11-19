@@ -34,7 +34,7 @@ export const getLeaveRequests = async () => {
     return response.data;
 };
 // Récupérer les demandes de congé d'un utilisateur
-export const getUserLeaveRequests = async (employeeId) => {
+export const getUserLeaveRequestss = async (employeeId) => {
     const token = localStorage.getItem('token');
     try {
         const response = await axios.get(`${apiUrl}/my-requests/${employeeId}`, {
@@ -46,6 +46,27 @@ export const getUserLeaveRequests = async (employeeId) => {
     } catch (error) {
         throw error;
     }
+};
+
+// Fonction pour récupérer les demandes utilisateur avec filtres
+export const getUserLeaveRequests = async (userId, type = '', status = '') => {
+    const query = new URLSearchParams({ userId });
+    if (type) query.append('type', type);
+    if (status) query.append('status', status);
+
+    const response = await fetch(`${apiUrl}/searchU?${query.toString()}`);
+    if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des demandes');
+    }
+    return response.json();
+};
+export const getFilteredLeaveRequests = async (type, status) => {
+    const query = new URLSearchParams();
+    if (type) query.append('type', type);
+    if (status) query.append('status', status);
+
+    const response = await fetch(`${apiUrl}/search?${query.toString()}`);
+    return response.json();
 };
 
 export const approveLeaveRequest = async (id) => {

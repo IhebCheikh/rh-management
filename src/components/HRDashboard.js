@@ -3,6 +3,8 @@ import { getEmployees, updateEmployee, deleteEmployee } from '../api/employeeApi
 
 const HRDashboard = () => {
     const [employees, setEmployees] = useState([]);
+    const [filteredEmployees, setFilteredEmployees] = useState([]); // Liste filtrée des employés
+    const [searchTerm, setSearchTerm] = useState(''); // Terme de recherche
     const [selectedEmployee, setSelectedEmployee] = useState(null);
 
     useEffect(() => {
@@ -13,9 +15,23 @@ const HRDashboard = () => {
         try {
             const data = await getEmployees();
             setEmployees(data);
+            setFilteredEmployees(data); // Initialement, tous les employés sont affichés
         } catch (error) {
             console.error('Erreur lors du chargement des employés:', error);
         }
+    };
+
+    // Fonction pour filtrer les employés localement
+    const handleSearch = (e) => {
+        const term = e.target.value.toLowerCase();
+        setSearchTerm(term);
+        const filtered = employees.filter(
+            (employee) =>
+                employee.name.toLowerCase().includes(term) ||
+                employee.role.toLowerCase().includes(term) ||
+                employee.department.toLowerCase().includes(term)
+        );
+        setFilteredEmployees(filtered);
     };
 
     const handleUpdateEmployee = async () => {
@@ -47,13 +63,30 @@ const HRDashboard = () => {
             <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
                 <h1 className="text-2xl font-semibold text-gray-700 mb-6">Gestion des Employés</h1>
 
+                {/* Barre de recherche */}
+                <div className="mb-6">
+                    <input
+                        type="text"
+                        placeholder="Rechercher par nom, rôle ou département"
+                        value={searchTerm}
+                        onChange={handleSearch}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                </div>
+
                 <h2 className="text-xl font-medium text-gray-600 mb-4">Liste des employés</h2>
                 <ul className="space-y-4">
-                    {employees.map((employee) => (
-                        <li key={employee._id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-sm">
+                    {filteredEmployees.map((employee) => (
+                        <li
+                            key={employee._id}
+                            className="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-sm"
+                        >
                             <div>
                                 <p className="font-medium text-gray-800">{employee.name}</p>
-                                <p className="text-sm text-gray-500">{employee.role} - {employee.department} - {new Date(employee.startDate).toLocaleDateString()}</p>
+                                <p className="text-sm text-gray-500">
+                                    {employee.role} - {employee.department} -{' '}
+                                    {new Date(employee.startDate).toLocaleDateString()}
+                                </p>
                             </div>
                             <div className="space-x-2">
                                 <button
@@ -83,7 +116,12 @@ const HRDashboard = () => {
                                     type="text"
                                     placeholder="Département"
                                     value={selectedEmployee.department}
-                                    onChange={(e) => setSelectedEmployee({ ...selectedEmployee, department: e.target.value })}
+                                    onChange={(e) =>
+                                        setSelectedEmployee({
+                                            ...selectedEmployee,
+                                            department: e.target.value,
+                                        })
+                                    }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                 />
                             </div>
@@ -92,7 +130,12 @@ const HRDashboard = () => {
                                 <input
                                     type="date"
                                     value={selectedEmployee.startDate}
-                                    onChange={(e) => setSelectedEmployee({ ...selectedEmployee, startDate: e.target.value })}
+                                    onChange={(e) =>
+                                        setSelectedEmployee({
+                                            ...selectedEmployee,
+                                            startDate: e.target.value,
+                                        })
+                                    }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                 />
                             </div>
