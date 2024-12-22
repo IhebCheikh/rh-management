@@ -39,8 +39,14 @@ const Navbar = () => {
                 {role === 'RH' && (
                     <Link to="/hr-leave" style={styles.navItem}>Leave Requests</Link>
                 )}
+                {role === 'RH' && (
+                    <Link to="/hr/reviews" style={styles.navItem}>Performances</Link>
+                )}
                 {role === 'employee' && (
-                    <Link to="/employee-leave" style={styles.navItem}>My Leave Requests</Link>
+                    <Link to="/employee-dashboard" style={styles.navItem}>My Leave Requests</Link>
+                )}
+                {role === 'employee' && (
+                    <Link to="/employee/reviews" style={styles.navItem}>My Performance</Link>
                 )}
             </div>
             <div style={styles.authSection}>

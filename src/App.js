@@ -9,6 +9,8 @@ import Navbar from './components/Navbar';
 import { AuthProvider } from './context/AuthContext';
 import EmployeeLeave from "./components/EmployeeLeave";
 import HRLeave from "./components/HRLeave";
+import HRPerformance from "./components/HRPerformance";
+import EmployeePerformance from "./components/EmployeePerformance";
 
 const App = () => {
     return (
@@ -23,6 +25,9 @@ const App = () => {
                     <Route path="/employee-leave" element={<EmployeeLeave />} />
                     <Route path="/hr-leave" element={<HRLeave />} />
                     <Route path="/" element={<Navigate to="/login" />} />
+                    <Route path="/hr/reviews" element={<HRPerformance />} />
+                    <Route path="/employee/reviews" element={<EmployeePerformance />} />
+
                 </Routes>
             </AuthProvider>
         </Router>
