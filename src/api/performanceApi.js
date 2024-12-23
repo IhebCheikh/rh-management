@@ -22,7 +22,9 @@ export const createReview = async (reviewData) => {
 
 // Mettre à jour une évaluation
 export const updateReview = async (reviewId, updates) => {
-    const response = await axios.patch(`${apiUrl}/${reviewId}`, updates);
+    console.log('reviewId',reviewId);
+    console.log("udaptes", updates);
+    const response = await axios.patch(`${apiUrl}/reviews/${reviewId}`, updates);
     return response.data;
 };
 

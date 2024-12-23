@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { getAllReviews, createReview, deleteReview } from '../api/performanceApi';
-import { getEmployees} from '../api/employeeApi';
+import { getAllReviews, createReview, deleteReview, updateReview } from '../api/performanceApi';
+import { getEmployees } from '../api/employeeApi';
 
 const HRPerformance = () => {
     const [reviews, setReviews] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [newReview, setNewReview] = useState({
         employeeId: '',
-        employeeName: '',
         reviewPeriod: '',
-        scores: {},
+        scores: '',
         comments: '',
     });
+    const [editingReview, setEditingReview] = useState(null);
 
-    // Charger les évaluations et les employés
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -23,8 +22,6 @@ const HRPerformance = () => {
                 ]);
                 setReviews(reviewsData);
                 setEmployees(employeesData);
-                console.log('Reviews:', reviewsData);
-                console.log('Employees:', employeesData);
             } catch (error) {
                 console.error('Erreur lors du chargement des données :', error);
             }
@@ -32,108 +29,198 @@ const HRPerformance = () => {
         fetchData();
     }, []);
 
-    // Ajouter une nouvelle évaluation
-    const handleCreateReview = async () => {
-        try {
-            const reviewer = JSON.parse(localStorage.getItem('user')); // Récupérer les infos du reviewer
-            if (!reviewer) {
-                console.error('Reviewer non trouvé dans le stockage local.');
-                return;
-            }
-
-            const reviewData = {
-                ...newReview,
-                reviewerId: reviewer.id,
-                reviewerName: reviewer.name,
-            };
-
-            const createdReview = await createReview(reviewData);
-            setReviews([...reviews, createdReview]); // Mettre à jour la liste
-            setNewReview({
-                employeeId: '',
-                employeeName: '',
-                reviewPeriod: '',
-                scores: 0,
-                comments: '',
-            }); // Réinitialiser le formulaire
-        } catch (error) {
-            console.error('Erreur lors de la création de l’évaluation :', error);
-        }
-    };
-
-
-
-    // Supprimer une évaluation
     const handleDeleteReview = async (reviewId) => {
         try {
             await deleteReview(reviewId);
-            setReviews(reviews.filter((review) => review._id !== reviewId)); // Mettre à jour la liste
+            setReviews(reviews.filter((review) => review._id !== reviewId));
         } catch (error) {
             console.error('Erreur lors de la suppression de l’évaluation :', error);
         }
     };
 
+    const handleAddReview = async () => {
+        try {
+            const createdReview = await createReview(newReview);
+            setReviews([...reviews, createdReview]);
+            setNewReview({ employeeId: '', reviewPeriod: '', scores: '', comments: '' });
+        } catch (error) {
+            console.error('Erreur lors de l’ajout de l’évaluation :', error);
+        }
+    };
+
+    const handleUpdateReview = async () => {
+        try {
+            const updatedReview = await updateReview(editingReview._id, editingReview);
+            setReviews(
+                reviews.map((review) => (review._id === updatedReview._id ? updatedReview : review))
+            );
+            setEditingReview(null);
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour de l’évaluation :', error);
+        }
+    };
+
+    const groupedReviews = reviews.reduce((acc, review) => {
+        if (!acc[review.employeeName]) {
+            acc[review.employeeName] = [];
+        }
+        acc[review.employeeName].push(review);
+        return acc;
+    }, {});
+
+    const calculateAverageScore = (employeeReviews) => {
+        const totalScore = employeeReviews.reduce((sum, review) => sum + parseFloat(review.scores || 0), 0);
+        return (totalScore / employeeReviews.length).toFixed(2);
+    };
+
     return (
-        <div>
-            <h1>Évaluations des employés</h1>
-
-            {/* Formulaire pour ajouter une évaluation */}
-            <div>
-                <h2>Nouvelle évaluation</h2>
-                {/* Liste déroulante pour sélectionner un employé */}
-                <select
-                    value={newReview.employeeId}
-                    onChange={(e) => {
-                        const selectedEmployee = employees.find(emp => emp._id === e.target.value);
-                        setNewReview({
-                            ...newReview,
-                            employeeId: selectedEmployee._id,
-                            employeeName: selectedEmployee.name,
-                        });
-                    }}
-                >
-                    <option value="">Sélectionnez un employé</option>
-                    {employees.map((employee) => (
-                        <option key={employee._id} value={employee._id}>
-                            {employee.name}
-                        </option>
+        <div className="bg-gray-100 min-h-screen p-8">
+            <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-md p-6">
+                <h1 className="text-2xl font-semibold text-gray-700 mb-6">Évaluations des employés</h1>
+                <table className="table-auto w-full border-collapse border border-gray-300">
+                    <thead className="bg-gray-200">
+                    <tr>
+                        <th className="border border-gray-300 px-4 py-2">Employé</th>
+                        <th className="border border-gray-300 px-4 py-2">Période</th>
+                        <th className="border border-gray-300 px-4 py-2">Score</th>
+                        <th className="border border-gray-300 px-4 py-2">Commentaires</th>
+                        <th className="border border-gray-300 px-4 py-2">Évaluateur</th>
+                        <th className="border border-gray-300 px-4 py-2">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {Object.keys(groupedReviews).map((employeeName) => (
+                        <React.Fragment key={employeeName}>
+                            {groupedReviews[employeeName].map((review, index) => (
+                                <tr key={review._id} className="bg-white hover:bg-gray-50">
+                                    {index === 0 && (
+                                        <td
+                                            rowSpan={groupedReviews[employeeName].length + 1}
+                                            className="border border-gray-300 px-4 py-2 font-semibold text-gray-800"
+                                        >
+                                            {employeeName}
+                                        </td>
+                                    )}
+                                    <td className="border border-gray-300 px-4 py-2">{review.reviewPeriod}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{review.scores}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{review.comments}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{review.reviewerName}</td>
+                                    <td className="border border-gray-300 px-4 py-2 space-x-2">
+                                        <button
+                                            className="px-3 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
+                                            onClick={() => setEditingReview(review)}
+                                        >
+                                            Modifier
+                                        </button>
+                                        <button
+                                            className="px-3 py-1 text-sm text-white bg-red-600 rounded hover:bg-red-700"
+                                            onClick={() => handleDeleteReview(review._id)}
+                                        >
+                                            Supprimer
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                            <tr className="bg-gray-100">
+                                <td colSpan="5" className="border border-gray-300 px-4 py-2 text-right font-bold">
+                                    Moyenne des scores : {calculateAverageScore(groupedReviews[employeeName])}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                    <button
+                                        className="px-3 py-1 text-sm text-white bg-green-600 rounded hover:bg-green-700"
+                                        onClick={() => setNewReview({ employeeId: '', reviewPeriod: '', scores: '', comments: '' })}
+                                    >
+                                        Ajouter
+                                    </button>
+                                </td>
+                            </tr>
+                        </React.Fragment>
                     ))}
-                </select>
+                    </tbody>
+                </table>
 
-                {/* Sélecteur de date pour la période d'évaluation */}
-                <input
-                    type="month"
-                    value={newReview.reviewPeriod}
-                    onChange={(e) => setNewReview({ ...newReview, reviewPeriod: e.target.value })}
-                />
-
-                {/* Champ pour le score */}
-                <input
-                    type="number"
-                    placeholder="Score"
-                    value={newReview.scores}
-                    onChange={(e) => setNewReview({ ...newReview, scores: parseInt(e.target.value, 10) })}
-                />
-
-                <textarea
-                    placeholder="Commentaires"
-                    value={newReview.comments}
-                    onChange={(e) => setNewReview({ ...newReview, comments: e.target.value })}
-                ></textarea>
-                <button onClick={handleCreateReview}>Ajouter</button>
-            </div>
-
-            {/* Liste des évaluations */}
-            <div>
-                <h2>Liste des évaluations</h2>
-                {reviews.map((review) => (
-                    <div key={review._id} style={{ border: '1px solid #ccc', padding: '10px', margin: '10px' }}>
-                        <p><strong>Employé :</strong> {review.employeeName}</p>
-                        <p><strong>Période :</strong> {review.reviewPeriod}</p>
-                        <p><strong>Commentaires :</strong> {review.comments}</p>
-                        <button onClick={() => handleDeleteReview(review._id)}>Supprimer</button>
+                {(editingReview || newReview.employeeId) && (
+                    <div className="mt-6">
+                        <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                            {editingReview ? 'Modifier l’évaluation' : 'Ajouter une évaluation'}
+                        </h2>
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                editingReview ? handleUpdateReview() : handleAddReview();
+                            }}
+                        >
+                            <div className="grid grid-cols-1 gap-4">
+                                <select
+                                    className="border border-gray-300 rounded px-4 py-2"
+                                    value={editingReview?.employeeId || newReview.employeeId}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (editingReview) {
+                                            setEditingReview({ ...editingReview, employeeId: value });
+                                        } else {
+                                            setNewReview({ ...newReview, employeeId: value });
+                                        }
+                                    }}
+                                >
+                                    <option value="">Sélectionner un employé</option>
+                                    {employees.map((employee) => (
+                                        <option key={employee._id} value={employee._id}>
+                                            {employee.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="text"
+                                    className="border border-gray-300 rounded px-4 py-2"
+                                    placeholder="Période d’évaluation"
+                                    value={editingReview?.reviewPeriod || newReview.reviewPeriod}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (editingReview) {
+                                            setEditingReview({ ...editingReview, reviewPeriod: value });
+                                        } else {
+                                            setNewReview({ ...newReview, reviewPeriod: value });
+                                        }
+                                    }}
+                                />
+                                <input
+                                    type="number"
+                                    className="border border-gray-300 rounded px-4 py-2"
+                                    placeholder="Score"
+                                    value={editingReview?.scores || newReview.scores}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (editingReview) {
+                                            setEditingReview({ ...editingReview, scores: value });
+                                        } else {
+                                            setNewReview({ ...newReview, scores: value });
+                                        }
+                                    }}
+                                />
+                                <textarea
+                                    className="border border-gray-300 rounded px-4 py-2"
+                                    placeholder="Commentaires"
+                                    value={editingReview?.comments || newReview.comments}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (editingReview) {
+                                            setEditingReview({ ...editingReview, comments: value });
+                                        } else {
+                                            setNewReview({ ...newReview, comments: value });
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="mt-4 px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+                            >
+                                {editingReview ? 'Mettre à jour' : 'Ajouter'}
+                            </button>
+                        </form>
                     </div>
-                ))}
+                )}
             </div>
         </div>
     );
