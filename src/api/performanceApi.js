@@ -10,7 +10,7 @@ export const getEmployeeReviews = async (employeeId) => {
 
 // Récupérer toutes les évaluations (RH)
 export const getAllReviews = async () => {
-    const response = await axios.get(`${apiUrl}/reviews}`);
+    const response = await axios.get(`${apiUrl}`);
     return response.data;
 };
 

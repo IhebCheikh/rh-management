@@ -11,6 +11,8 @@ import EmployeeLeave from "./components/EmployeeLeave";
 import HRLeave from "./components/HRLeave";
 import HRPerformance from "./components/HRPerformance";
 import EmployeePerformance from "./components/EmployeePerformance";
+import HRTimeSheet from "./components/HRTimeSheet";
+import EmployeeTimeSheet from "./components/EmployeeTimeSheet";
 
 const App = () => {
     return (
@@ -27,6 +29,8 @@ const App = () => {
                     <Route path="/" element={<Navigate to="/login" />} />
                     <Route path="/hr/reviews" element={<HRPerformance />} />
                     <Route path="/employee/reviews" element={<EmployeePerformance />} />
+                    <Route path="/employee/timesheet" element={<EmployeeTimeSheet />} />
+                    <Route path="/hr/timesheet" element={<HRTimeSheet />} />
 
                 </Routes>
             </AuthProvider>

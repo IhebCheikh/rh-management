@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getAllReviews, createReview, updateReview, deleteReview } from '../api/performanceApi';
+import { getAllReviews, createReview, deleteReview } from '../api/performanceApi';
+import { getEmployees} from '../api/employeeApi';
 
 const HRPerformance = () => {
     const [reviews, setReviews] = useState([]);
+    const [employees, setEmployees] = useState([]);
     const [newReview, setNewReview] = useState({
         employeeId: '',
         employeeName: '',
@@ -11,39 +13,55 @@ const HRPerformance = () => {
         comments: '',
     });
 
-    // Charger toutes les évaluations
+    // Charger les évaluations et les employés
     useEffect(() => {
-        const fetchReviews = async () => {
+        const fetchData = async () => {
             try {
-                const data = await getAllReviews();
-                setReviews(data);
+                const [reviewsData, employeesData] = await Promise.all([
+                    getAllReviews(),
+                    getEmployees(),
+                ]);
+                setReviews(reviewsData);
+                setEmployees(employeesData);
+                console.log('Reviews:', reviewsData);
+                console.log('Employees:', employeesData);
             } catch (error) {
-                console.error('Erreur lors de la récupération des évaluations :', error);
+                console.error('Erreur lors du chargement des données :', error);
             }
         };
-        fetchReviews();
+        fetchData();
     }, []);
 
     // Ajouter une nouvelle évaluation
     const handleCreateReview = async () => {
         try {
-            const reviewerId = localStorage.getItem('userId'); // ID RH
-            const reviewerName = localStorage.getItem('userName'); // Nom RH
+            const reviewer = JSON.parse(localStorage.getItem('user')); // Récupérer les infos du reviewer
+            if (!reviewer) {
+                console.error('Reviewer non trouvé dans le stockage local.');
+                return;
+            }
 
-            const reviewData = { ...newReview, reviewerId, reviewerName };
+            const reviewData = {
+                ...newReview,
+                reviewerId: reviewer.id,
+                reviewerName: reviewer.name,
+            };
+
             const createdReview = await createReview(reviewData);
             setReviews([...reviews, createdReview]); // Mettre à jour la liste
             setNewReview({
                 employeeId: '',
                 employeeName: '',
                 reviewPeriod: '',
-                scores: {},
+                scores: 0,
                 comments: '',
             }); // Réinitialiser le formulaire
         } catch (error) {
             console.error('Erreur lors de la création de l’évaluation :', error);
         }
     };
+
+
 
     // Supprimer une évaluation
     const handleDeleteReview = async (reviewId) => {
@@ -62,24 +80,41 @@ const HRPerformance = () => {
             {/* Formulaire pour ajouter une évaluation */}
             <div>
                 <h2>Nouvelle évaluation</h2>
-                <input
-                    type="text"
-                    placeholder="ID de l'employé"
+                {/* Liste déroulante pour sélectionner un employé */}
+                <select
                     value={newReview.employeeId}
-                    onChange={(e) => setNewReview({ ...newReview, employeeId: e.target.value })}
-                />
+                    onChange={(e) => {
+                        const selectedEmployee = employees.find(emp => emp._id === e.target.value);
+                        setNewReview({
+                            ...newReview,
+                            employeeId: selectedEmployee._id,
+                            employeeName: selectedEmployee.name,
+                        });
+                    }}
+                >
+                    <option value="">Sélectionnez un employé</option>
+                    {employees.map((employee) => (
+                        <option key={employee._id} value={employee._id}>
+                            {employee.name}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Sélecteur de date pour la période d'évaluation */}
                 <input
-                    type="text"
-                    placeholder="Nom de l'employé"
-                    value={newReview.employeeName}
-                    onChange={(e) => setNewReview({ ...newReview, employeeName: e.target.value })}
-                />
-                <input
-                    type="text"
-                    placeholder="Période d'évaluation"
+                    type="month"
                     value={newReview.reviewPeriod}
                     onChange={(e) => setNewReview({ ...newReview, reviewPeriod: e.target.value })}
                 />
+
+                {/* Champ pour le score */}
+                <input
+                    type="number"
+                    placeholder="Score"
+                    value={newReview.scores}
+                    onChange={(e) => setNewReview({ ...newReview, scores: parseInt(e.target.value, 10) })}
+                />
+
                 <textarea
                     placeholder="Commentaires"
                     value={newReview.comments}

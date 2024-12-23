@@ -42,11 +42,17 @@ const Navbar = () => {
                 {role === 'RH' && (
                     <Link to="/hr/reviews" style={styles.navItem}>Performances</Link>
                 )}
+                {role === 'RH' && (
+                    <Link to="/hr/timesheet" style={styles.navItem}>Time Sheets</Link>
+                )}
                 {role === 'employee' && (
                     <Link to="/employee-dashboard" style={styles.navItem}>My Leave Requests</Link>
                 )}
                 {role === 'employee' && (
                     <Link to="/employee/reviews" style={styles.navItem}>My Performance</Link>
+                )}
+                {role === 'employee' && (
+                    <Link to="/employee/timesheet" style={styles.navItem}>My Time Sheet</Link>
                 )}
             </div>
             <div style={styles.authSection}>
