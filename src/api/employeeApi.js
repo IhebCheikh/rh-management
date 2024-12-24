@@ -45,3 +45,24 @@ export const deleteEmployee = async (employeeId) => {
         throw error;
     }
 };
+// Méthode pour récupérer les feuilles de temps d'un employé
+export const getTimeSheet = async (employeeId) => {
+    try {
+        const response = await axios.get(`http://localhost:3001/time-sheets/employee/${employeeId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des feuilles de temps:', error);
+        throw error;
+    }
+};
+
+export const validateTimeSheet = async (timeSheetId) => {
+    try {
+        const response = await axios.put(`http://localhost:3001/time-sheets/validate/${timeSheetId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la validation du timesheet:', error);
+        throw error;
+    }
+};
+

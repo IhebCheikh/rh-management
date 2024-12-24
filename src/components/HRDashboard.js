@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { getEmployees, updateEmployee, deleteEmployee } from '../api/employeeApi';
+import {useNavigate} from "react-router-dom";
 
 const HRDashboard = () => {
     const [employees, setEmployees] = useState([]);
     const [filteredEmployees, setFilteredEmployees] = useState([]); // Liste filtrée des employés
     const [searchTerm, setSearchTerm] = useState(''); // Terme de recherche
     const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const navigate = useNavigate(); // Hook pour la navigation
 
     useEffect(() => {
         loadEmployees();
@@ -100,6 +102,12 @@ const HRDashboard = () => {
                                     onClick={() => handleDeleteEmployee(employee._id)}
                                 >
                                     Supprimer
+                                </button>
+                                <button
+                                    className="px-3 py-1 text-sm text-white bg-green-600 rounded hover:bg-green-700"
+                                    onClick={() => navigate(`/timesheet/${employee._id}`)}
+                                >
+                                    Time Sheet
                                 </button>
                             </div>
                         </li>

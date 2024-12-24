@@ -1,57 +1,105 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useParams } from 'react-router-dom'; // Pour récupérer l'ID de l'employé
+import { getTimeSheet, validateTimeSheet } from '../api/employeeApi'; // API pour récupérer et valider le timesheet
 
-const TimeSheetTable = () => {
-    const [timeSheets, setTimeSheets] = useState([]);
+const HRTimeSheet = () => {
+    const { employeeId } = useParams(); // Récupère l'ID de l'employé depuis l'URL
+    const [employeeName, setEmployeeName] = useState(''); // Nom de l'employé
+    const [timeSheet, setTimeSheet] = useState([]);
 
     useEffect(() => {
-        const fetchTimeSheets = async () => {
-            try {
-                const response = await axios.get('http://localhost:3000/time-sheets/employee/123'); // Utilisez l'ID de l'employé
-                setTimeSheets(response.data);
-            } catch (error) {
-                console.error('Erreur lors de la récupération des feuilles de temps', error);
-            }
-        };
-        fetchTimeSheets();
+        loadTimeSheet();
     }, []);
 
-    const handleValidate = async (id) => {
+    const loadTimeSheet = async () => {
         try {
-            await axios.put(`http://localhost:3000/time-sheets/validate/${id}`);
-            alert('Feuille de temps validée');
-            setTimeSheets(timeSheets.map(ts => ts._id === id ? { ...ts, validatedByHR: true } : ts));
+            const data = await getTimeSheet(employeeId);
+            if (Array.isArray(data) && data.length > 0) {
+                setEmployeeName(data[0].employeeName || 'Nom inconnu');
+                setTimeSheet(data);
+            } else {
+                console.error('Données inattendues:', data);
+                setTimeSheet([]);
+            }
         } catch (error) {
-            console.error('Erreur lors de la validation de la feuille de temps', error);
+            console.error('Erreur lors du chargement du timesheet:', error);
+            setTimeSheet([]);
+        }
+    };
+
+    const handleValidation = async (id) => {
+        try {
+            await validateTimeSheet(id);
+            setTimeSheet((prevTimeSheet) =>
+                prevTimeSheet.map((entry) =>
+                    entry._id === id ? { ...entry, validatedByHR: true } : entry
+                )
+            );
+        } catch (error) {
+            console.error('Erreur lors de la validation:', error);
         }
     };
 
     return (
-        <table>
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>Heures travaillées</th>
-                <th>Validée</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            {timeSheets.map((timeSheet) => (
-                <tr key={timeSheet._id}>
-                    <td>{new Date(timeSheet.date).toLocaleDateString()}</td>
-                    <td>{timeSheet.hoursWorked}</td>
-                    <td>{timeSheet.validatedByHR ? 'Oui' : 'Non'}</td>
-                    <td>
-                        {!timeSheet.validatedByHR && (
-                            <button onClick={() => handleValidate(timeSheet._id)}>Valider</button>
-                        )}
-                    </td>
-                </tr>
-            ))}
-            </tbody>
-        </table>
+        <div className="bg-gray-100 min-h-screen p-8">
+            <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
+                <h1 className="text-2xl font-semibold text-gray-700 mb-6">Time Sheet</h1>
+                {timeSheet.length === 0 ? (
+                    <p className="text-gray-500">Chargement des données...</p>
+                ) : (
+                    <>
+                        <h2 className="text-lg font-medium text-gray-600 mb-4">
+                            Employé: {employeeName}
+                        </h2>
+                        <table className="table-auto w-full border-collapse border border-gray-300">
+                            <thead>
+                            <tr className="bg-gray-200">
+                                <th className="border border-gray-300 px-4 py-2">Date</th>
+                                <th className="border border-gray-300 px-4 py-2">Session 1</th>
+                                <th className="border border-gray-300 px-4 py-2">Session 2</th>
+                                <th className="border border-gray-300 px-4 py-2">Session 3</th>
+                                <th className="border border-gray-300 px-4 py-2">Session 4</th>
+                                <th className="border border-gray-300 px-4 py-2">Validation</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {timeSheet.map((entry) => (
+                                <tr key={entry._id} className="text-center">
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        {new Date(entry.date).toLocaleDateString()}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        {entry.session1 ? 'Yes' : 'No'}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        {entry.session2 ? 'Yes' : 'No'}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        {entry.session3 ? 'Yes' : 'No'}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        {entry.session4 ? 'Yes' : 'No'}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        {entry.validatedByHR ? (
+                                            <span className="text-green-600 font-semibold">Validated</span>
+                                        ) : (
+                                            <input
+                                                type="checkbox"
+                                                onChange={() => handleValidation(entry._id)}
+                                                className="form-checkbox h-5 w-5 text-green-600"
+                                            />
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </>
+                )}
+            </div>
+        </div>
     );
 };
 
-export default TimeSheetTable;
+export default HRTimeSheet;

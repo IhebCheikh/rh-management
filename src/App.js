@@ -31,6 +31,7 @@ const App = () => {
                     <Route path="/employee/reviews" element={<EmployeePerformance />} />
                     <Route path="/employee/timesheet" element={<EmployeeTimeSheet />} />
                     <Route path="/hr/timesheet" element={<HRTimeSheet />} />
+                    <Route path="/timesheet/:employeeId" element={<HRTimeSheet />} />
 
                 </Routes>
             </AuthProvider>

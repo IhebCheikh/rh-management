@@ -21,15 +21,23 @@ const TimeSheetForm = () => {
 
     // Charger les feuilles de temps existantes
     const loadTimeSheets = async () => {
+        setExistingTimeSheets({}); // Réinitialiser avant de charger les nouvelles données
+        console.log('Chargement des feuilles de temps pour:', {
+            employeeId,
+            month: selectedMonth.format('YYYY-MM'),
+        });
+
         try {
-            const response = await axios.get(`http://localhost:3001/time-sheets?employeeId=${employeeId}&month=${selectedMonth.format('YYYY-MM')}`);
-            console.log(response);
+            const response = await axios.get(
+                `http://localhost:3001/time-sheets?employeeId=${employeeId}&month=${selectedMonth.format('YYYY-MM')}`
+            );
+            console.log(response.data);
             const timeSheetsMap = response.data.reduce((acc, timeSheet) => {
                 acc[timeSheet.date] = timeSheet;
                 return acc;
             }, {});
             setExistingTimeSheets(timeSheetsMap);
-            updateWeeksWithExistingData(timeSheetsMap); // Mettre à jour les semaines avec les données existantes
+            updateWeeksWithExistingData(timeSheetsMap);
         } catch (error) {
             console.error('Erreur lors du chargement des feuilles de temps :', error);
         }
@@ -58,14 +66,36 @@ const TimeSheetForm = () => {
     };
 
     // Charger les feuilles de temps au changement de mois ou d'employé
-    useEffect(() => {
-        if (employeeId) {
+    /*useEffect(() => {
+        if (employeeId && selectedMonth) {
+            // Charge uniquement les feuilles de temps lorsque l'employé ou le mois change
             loadTimeSheets();
         }
     }, [employeeId, selectedMonth]);
 
+    useEffect(() => {
+        // Génère les semaines uniquement lorsque le mois change
+        generateWeeks(selectedMonth);
+    }, [selectedMonth]);*/
+
+    useEffect(() => {
+        if (selectedMonth) {
+            // Réinitialiser les semaines avant de les générer
+            setWeeks([]);
+            generateWeeks(selectedMonth);
+        }
+    }, [selectedMonth]);
+
+    useEffect(() => {
+        if (employeeId && weeks.length > 0) {
+            // Charger les feuilles de temps uniquement après la génération des semaines
+            loadTimeSheets();
+        }
+    }, [employeeId,selectedMonth]);
+
     // Génération des semaines du mois
     const generateWeeks = (month) => {
+        console.log("generateWeeks", month.month())
         const startOfMonth = dayjs(month).startOf('month');
         const endOfMonth = dayjs(month).endOf('month');
         const weeks = [];
@@ -86,12 +116,8 @@ const TimeSheetForm = () => {
         setWeeks(weeks);
     };
 
-    useEffect(() => {
-        generateWeeks(selectedMonth);
-    }, [selectedMonth]);
-
     // Gestion des changements dans les cases à cocher
-    const handleCheckboxChange = (dayIndex, sessionIndex) => {
+    const handleCheckboxChange11 = (dayIndex, sessionIndex) => {
         const updatedWeeks = [...weeks];
         const weekIndex = Math.floor(dayIndex / 7);
         const dayInWeekIndex = dayIndex % 7;
@@ -100,6 +126,27 @@ const TimeSheetForm = () => {
             !updatedWeeks[weekIndex][dayInWeekIndex].sessions[sessionIndex];
 
         setWeeks(updatedWeeks);
+    };
+    const handleCheckboxChange = (dayIndex, sessionIndex) => {
+        const updatedWeeks = [...weeks];
+        const weekIndex = Math.floor(dayIndex / 7);
+        const dayInWeekIndex = dayIndex % 7;
+
+        // Vérifiez si l'indice de la semaine et de la journée est valide
+        if (
+            updatedWeeks[weekIndex] &&
+            updatedWeeks[weekIndex][dayInWeekIndex] &&
+            updatedWeeks[weekIndex][dayInWeekIndex].sessions
+        ) {
+            updatedWeeks[weekIndex][dayInWeekIndex].sessions[sessionIndex] =
+                !updatedWeeks[weekIndex][dayInWeekIndex].sessions[sessionIndex];
+            setWeeks(updatedWeeks);
+        } else {
+            console.error(
+                'Données invalides pour la case à cocher :',
+                { weekIndex, dayInWeekIndex, sessionIndex }
+            );
+        }
     };
 
     // Soumission des données pour une seule date
