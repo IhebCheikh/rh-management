@@ -54,6 +54,7 @@ const Navbar = () => {
                 {role === 'employee' && (
                     <Link to="/employee/timesheet" style={styles.navItem}>My Time Sheet</Link>
                 )}
+                <Link to="/notif" style={styles.navItem}> Notification </Link>
             </div>
             <div style={styles.authSection}>
                 {user ? (

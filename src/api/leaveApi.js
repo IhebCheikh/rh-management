@@ -2,10 +2,7 @@ import axios from 'axios';
 
 const apiUrl = 'http://localhost:3001/leave-requests';
 
-export const createLeaveRequestt = async (employeeId, type, startDate, endDate) => {
-    const response = await axios.post(apiUrl, { employeeId, type, startDate, endDate });
-    return response.data;
-};
+
 export const createLeaveRequest = async (employeeId, type, startDate, endDate) => {
     const token = localStorage.getItem('token');
 

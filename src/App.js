@@ -13,6 +13,7 @@ import HRPerformance from "./components/HRPerformance";
 import EmployeePerformance from "./components/EmployeePerformance";
 import HRTimeSheet from "./components/HRTimeSheet";
 import EmployeeTimeSheet from "./components/EmployeeTimeSheet";
+import NotificaionCenter from "./components/NotificaionCenter";
 
 const App = () => {
     return (
@@ -32,6 +33,7 @@ const App = () => {
                     <Route path="/employee/timesheet" element={<EmployeeTimeSheet />} />
                     <Route path="/hr/timesheet" element={<HRTimeSheet />} />
                     <Route path="/timesheet/:employeeId" element={<HRTimeSheet />} />
+                    <Route path="/notif" element={<NotificaionCenter />} />
 
                 </Routes>
             </AuthProvider>
